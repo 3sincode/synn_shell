@@ -7,6 +7,12 @@ PanelWindow {
 
     required property QtObject tokens
     required property QtObject modeController
+    required property QtObject launcherController
+    required property QtObject overviewController
+    required property QtObject motion
+    signal openLauncherRequested()
+    signal openOverviewRequested()
+    signal modeRequested(string mode)
 
     anchors {
         top: true
@@ -40,19 +46,33 @@ PanelWindow {
                 color: tokens.graphite
             }
 
-            Text {
-                text: bar.modeController.currentMode
-                color: bar.modeController.currentMode === "Sanctuary" ? tokens.teal : tokens.amber
-                font.pixelSize: 13
-                font.weight: Font.Medium
+            Repeater {
+                model: ["Sanctuary", "Workshop"]
+                delegate: Text {
+                    required property string modelData
+                    text: modelData
+                    color: bar.modeController.currentMode === modelData ?
+                           (modelData === "Sanctuary" ? tokens.teal : tokens.amber) : tokens.steel
+                    font.pixelSize: 13
+                    font.weight: bar.modeController.currentMode === modelData ? Font.DemiBold : Font.Normal
+                    Behavior on color { ColorAnimation { duration: bar.motion.modeMs } }
+                    MouseArea { anchors.fill: parent; onClicked: bar.modeRequested(modelData) }
+                }
             }
 
             Item { Layout.fillWidth: true }
 
             Text {
-                text: "Stage B0 preview"
-                color: tokens.steel
+                text: "Apps"
+                color: tokens.pearl
                 font.pixelSize: 12
+                MouseArea { anchors.fill: parent; onClicked: bar.openLauncherRequested() }
+            }
+            Text {
+                text: "Overview"
+                color: tokens.pearl
+                font.pixelSize: 12
+                MouseArea { anchors.fill: parent; onClicked: bar.openOverviewRequested() }
             }
         }
     }
