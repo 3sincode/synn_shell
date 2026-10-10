@@ -1,21 +1,32 @@
 # Synn desktop shell
 
-Independent Quickshell desktop project. This repository has no integration with the personal AI project at `/home/sinn/Projects/Synn` and must not acquire a shared daemon, database, API, IPC, package, runtime dependency, or project-specific configuration with it.
+An independent Quickshell desktop project. The user-facing name is **Synn**; technical identifiers use `synn-shell`.
 
-## Stage B0
+## Stage B1 status
 
-The current tree is a minimal, **inactive** foundation: one `Shell.qml`, one top status bar, Nocturne Industrial tokens, a two-mode state controller, and an application registry interface. It has no launcher, Overview, real media/network controls, lock screen, hotkeys, installation process, or application lifecycle actions. It does not provide a complete desktop session.
+Stage B1 is source implementation for review, not a deployed desktop. It has one `Shell.qml`, one shared top status bar, a desktop-entry launcher, a Hyprland window Overview, two presentation modes, motion tokens, and a read-only window layout snapshot contract. Compositor behavior is **NOT RUNTIME TESTED**. Window layout restoration is deliberately gated and reports failure; no window positions are changed by mode transitions.
 
-The exact user-facing name is **Synn**. Technical identifiers can use `synn-shell` and `synn`. The locked product requirements are recorded in [`docs/LOCKED_SPEC.md`](docs/LOCKED_SPEC.md), derived from `/home/sinn/Synn Dekstop/punya gweh.md`. Source audit and merge rationale remain at `/home/sinn/Synn Dekstop/research/docs/`.
+The shell remains dockless and taskbarless. It contains no bottom-edge reveal, automatic application termination, or service controls. Stage C media/network features and Stage D secure lock are not implemented.
 
 ## Repository layout
 
-- `shell/Shell.qml`: single Quickshell entrypoint and scene owner.
-- `shell/core/`: visual tokens, mode state, and registry interface.
-- `shell/ui/bar/`: one top bar implementation, without app/task list or bottom surfaces.
-- `docs/`: locked requirements, boundaries, and Stage B1 gates.
-- `scripts/check_stage_b0.py`: static invariant checks.
+- `shell/Shell.qml`: single scene owner and interaction wiring.
+- `shell/core/`: controllers, registry, visual and motion tokens.
+- `shell/adapters/`: Quickshell Hyprland and global shortcut boundary.
+- `shell/logic/`: pure interaction rules used by QML and tests.
+- `shell/ui/`: shared top bar and transient launcher/Overview panels.
+- `config/hyprland/`: review-only keybind candidate; never sourced automatically.
+- `docs/`: locked requirements, architecture, status, and trial gates.
+- `scripts/`, `tests/`: static invariants and state-machine tests.
 
-Run the static check with `python3 scripts/check_stage_b0.py`. Quickshell/Qt are not installed on this audit host, so QML runtime validation is pending a separate preview environment. The future explicit file-path launch form is `qs -p /home/sinn/Projects/synn-shell/shell/Shell.qml` **only after** the preview environment is approved and prepared; do not add this to startup or run it alongside the active shell without a test plan. [Quickshell documents `--path` for raw QML files](https://quickshell.org/docs/v0.3.2/guide/introduction/).
+## Local checks
 
-No license for original Synn code is selected yet. No third-party source or assets are vendored.
+```sh
+python3 scripts/check_stage_b1.py
+node --test tests/interaction.test.mjs
+git diff --check
+```
+
+Node can be supplied from the Codex bundled runtime if it is absent from `PATH`. This authoring environment has no `qs` or `qmllint`, so QML syntax and runtime integration remain unverified. See [Stage B1 status](docs/STAGE_B1_STATUS.md) and [trial gates](docs/STAGE_B1_GATES.md) before any isolated test. The review keybind fragment must not be installed in the active KDE session.
+
+No third-party source or assets are vendored. A license for original Synn code has not yet been selected.

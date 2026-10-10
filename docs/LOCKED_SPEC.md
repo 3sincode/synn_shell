@@ -5,7 +5,7 @@ Authority: `/home/sinn/Synn Dekstop/punya gweh.md`, user Stage B0 authorization 
 ## Identity and project boundary
 
 - User-facing brand: **Synn** exactly. Technical IDs are lowercase (`synn`, `synn-shell`, `synnd.service` if a shell-only daemon is ever justified).
-- This repository `/home/sinn/Projects/synn-shell` is permanently independent from `/home/sinn/Projects/Synn`, the personal AI project. No shared daemon, database, IPC, API, packages, runtime dependencies, project-specific configuration, or future integration hooks. Do not modify the AI repository. Both may independently display “Synn”.
+- This repository `/home/sinn/Projects/synn-shell` is permanently independent. No shared daemon, database, IPC, API, packages, runtime dependencies, project-specific configuration, or future integration hooks with another project. The display name “Synn” can be used independently.
 - No automatic mass-renaming of paths/imports. Preserve attribution for any future licensed upstream material.
 
 ## Session, modes, and lifecycle
@@ -33,8 +33,8 @@ Authority: `/home/sinn/Synn Dekstop/punya gweh.md`, user Stage B0 authorization 
 - Input inactivity governs idle, not the number of open windows. Design states: DesktopActive, Idle, PreLock, Locked, Authenticating, UnlockSuccess, ReturningToDesktop, Ready; `UnlockSuccess` requires actual authentication.
 - The lock screen has a live/animated background and a smooth post-auth handoff where secure. Never use a fake overlay as a real locker. Choose audited hyprlock/ext-session-lock or correctly audited Quickshell `WlSessionLock` with real PAM. Wrong password stays locked; crash fails closed. If a seamless handoff cannot remain secure, use a graceful safe fallback.
 - Pause background animation when display turns off; offer static, battery-saving and reduced-motion paths. Lock/unlock never stops ongoing terminal or Docker work.
-- Preserve KDE Plasma and existing Caelestia as fallback. Hyprland/UWSM, packages, drivers, SDDM, PAM, systemd, Docker and home configuration changes require separately authorized deployment. Stage B0 changes only this repository.
+- Preserve KDE Plasma and existing Caelestia as fallback. Hyprland/UWSM, packages, drivers, SDDM, PAM, systemd, Docker and home configuration changes require separately authorized deployment. Stage B1 changes only this repository.
 
 ## Preview boundary
 
-The older browser prototype may visually simulate network and password entry, but it is not an OS bridge or secure lock. Stage B0 provides only a static shell foundation. Stage B1 and later features must meet the original specification's acceptance tests before deployment.
+The older browser prototype may visually simulate network and password entry, but it is not an OS bridge or secure lock. Stage B1 adds source-level launcher, Overview and presentation mode interactions. Runtime-dependent behavior remains unverified and must pass isolated acceptance tests before deployment.

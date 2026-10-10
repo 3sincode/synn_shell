@@ -13,11 +13,4 @@ QtObject {
     readonly property int cornerRadius: 12
     readonly property int spaceSmall: 8
     readonly property int spaceMedium: 16
-    readonly property int motionFastMs: 160
-    readonly property int motionStandardMs: 280
-    readonly property int motionSlowMs: 440
-
-    // B1 will bind this to an actual user/system preference.
-    property bool reducedMotion: false
-    property bool lowPower: false
 }

@@ -1,4 +1,5 @@
 import QtQuick
+import "../logic/InteractionRules.js" as Rules
 
 QtObject {
     id: registry
@@ -13,12 +14,16 @@ QtObject {
         return categories.indexOf(category) !== -1;
     }
 
-    function registerApplication(applicationId, category) {
+    function registerApplication(applicationId, category, kind) {
         if (typeof applicationId !== "string" || applicationId.length === 0 || !hasCategory(category))
             return false;
 
         const nextEntries = Object.assign({}, entries);
-        nextEntries[applicationId] = { category: category };
+        const normalizedKind = typeof kind === "string" ? kind.toLowerCase() : "application";
+        nextEntries[applicationId] = {
+            category: Rules.protectedCategory(category, normalizedKind) ? "Protected" : category,
+            kind: normalizedKind
+        };
         entries = nextEntries;
         entryChanged(applicationId);
         return true;
@@ -29,7 +34,8 @@ QtObject {
     }
 
     function isProtected(applicationId) {
-        return categoryFor(applicationId) === "Protected";
+        const item = entries[applicationId];
+        return !!item && Rules.protectedCategory(item.category, item.kind);
     }
 
     function unregisterApplication(applicationId) {
