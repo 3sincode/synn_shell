@@ -16,7 +16,6 @@ QtObject {
         { id: "notes.desktop", name: "Notes", genericName: "Writing", keywords: ["text", "sanctuary"], startupClass: "notes", noDisplay: false, runInTerminal: false },
         { id: "files.desktop", name: "Files", genericName: "File manager", keywords: ["folders"], startupClass: "files", noDisplay: false, runInTerminal: false }
     ]
-    signal windowsChanged()
 
     function windowList() { return windows.slice(); }
     function activeAddress() { return focusedAddress; }
@@ -39,11 +38,9 @@ QtObject {
         windows = windows.concat([{ address: address, title: title, appId: appId,
             workspaceName: "3", monitorName: "Mock monitor A" }]);
         focusedAddress = address;
-        windowsChanged();
     }
     function removeWindow(address) {
         windows = windows.filter(function (window) { return window.address !== address; });
         if (focusedAddress === address) focusedAddress = windows.length ? windows[0].address : "";
-        windowsChanged();
     }
 }
