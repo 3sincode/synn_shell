@@ -1,0 +1,5 @@
+.qmlls.ini
+*.qmlc
+*.jsc
+__pycache__/
+.pytest_cache/
