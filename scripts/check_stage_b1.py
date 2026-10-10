@@ -69,6 +69,42 @@ if trial.exists():
 check("hl.dsp.focus({ window = 'address:" in sources.get("shell/adapters/HyprlandAdapter.qml", ""),
       "Hyprland 0.56 Lua focus dispatch missing")
 
+preview_dir = root / "preview"
+preview_sources = {p.name: p.read_text() for p in sorted(preview_dir.glob("*.qml"))}
+check(set(preview_sources) == {"PreviewWindow.qml", "PreviewScene.qml", "PreviewButton.qml", "MockCompositor.qml"},
+      "interactive preview must have its four isolated components")
+for path, content in preview_sources.items():
+    for forbidden in ("PanelWindow", "GlobalShortcut", "Quickshell.Hyprland", "WlSessionLock",
+                      "HyprlandAdapter", "DesktopEntries", "Quickshell.Io", "execDetached"):
+        check(forbidden not in content, f"preview {path} contains compositor surface: {forbidden}")
+entry_source = (root / "Preview.qml").read_text() if (root / "Preview.qml").exists() else ""
+check("ShellRoot" in entry_source and "PreviewWindow" in entry_source,
+      "interactive preview needs a separate repository-root entrypoint")
+check(not any(token in entry_source for token in ("PanelWindow", "GlobalShortcut", "Quickshell.Hyprland", "WlSessionLock")),
+      "preview entrypoint contains a compositor surface")
+check("FloatingWindow" in preview_sources.get("PreviewWindow.qml", ""),
+      "interactive preview must be an ordinary window")
+scene = preview_sources.get("PreviewScene.qml", "")
+for component in ("LauncherController", "OverviewController", "ModeController", "MotionTokens", "MockCompositor"):
+    check(component in scene, f"interactive preview missing {component}")
+check("applicationEntries: mock.applications" in scene,
+      "interactive launcher must use mock desktop entries")
+check("externalExecutionAllowed: false" in scene and "function launchApplication(entry)" in
+      preview_sources.get("MockCompositor.qml", ""),
+      "interactive launcher must block real execution and use mock launch")
+check("property var applicationEntries: DesktopEntries.applications.values" in sources.get(
+    "shell/core/LauncherController.qml", ""), "production launcher default entries changed")
+check("preview" not in sources.get("shell/Shell.qml", "").lower(),
+      "production shell must not import the interactive preview")
+runner = root / "scripts/run_interactive_preview.sh"
+check(runner.exists(), "interactive preview launcher script missing")
+if runner.exists():
+    runner_source = runner.read_text()
+    check("XDG_CURRENT_DESKTOP" in runner_source and "HYPRLAND_INSTANCE_SIGNATURE" in runner_source,
+          "preview launcher needs desktop guards")
+    check('"$repo_dir/Preview.qml"' in runner_source and "qs -p" in runner_source,
+          "preview launcher must run exact QML path")
+
 for path, content in sources.items():
     for pattern in (r"\bArena\b", r"\bGaming\b", r"Super\+G", r"\bexecDetached\b",
                     r"\bsystemctl\b", r"\bpkill\b", r"\bterminate\s*\(", r"\bkill\s*\("):
@@ -88,4 +124,4 @@ if failures:
         print("FAIL:", failure)
     sys.exit(1)
 
-print(f"PASS: {len(qml_files)} QML files; one root/bar; two modes; safe launcher/overview boundaries")
+print(f"PASS: {len(qml_files)} production QML, {len(preview_sources)} preview QML; one desktop root/bar; two modes; safe boundaries")

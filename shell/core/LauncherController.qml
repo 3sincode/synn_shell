@@ -4,6 +4,8 @@ import "../logic/InteractionRules.js" as Rules
 
 QtObject {
     id: launcher
+    property var applicationEntries: DesktopEntries.applications.values
+    property bool externalExecutionAllowed: true
     property string phase: "Closed"
     property string query: ""
     property int selectedIndex: -1
@@ -16,7 +18,7 @@ QtObject {
     signal activationFailed(string desktopId, string reason)
 
     function refresh() {
-        results = Rules.matchingApps(DesktopEntries.applications.values, query);
+        results = Rules.matchingApps(applicationEntries, query);
         selectedIndex = results.length ? 0 : -1;
     }
 
@@ -46,6 +48,22 @@ QtObject {
             activated(entry.id);
             close();
             return true;
+        }
+        if (adapter && typeof adapter.launchApplication === "function") {
+            if (!adapter.launchApplication(entry)) {
+                lastError = "Application launch was rejected by the adapter";
+                activationFailed(entry.id, lastError);
+                return false;
+            }
+            restorePreviousFocus = false;
+            activated(entry.id);
+            close();
+            return true;
+        }
+        if (!externalExecutionAllowed) {
+            lastError = "External application execution is disabled";
+            activationFailed(entry.id, lastError);
+            return false;
         }
         if (entry.runInTerminal) {
             lastError = "Terminal application launch needs a configured terminal adapter";

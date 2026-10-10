@@ -17,6 +17,7 @@ The shell remains dockless and taskbarless. It contains no bottom-edge reveal, a
 - `shell/ui/`: shared top bar and transient launcher/Overview panels.
 - `config/hyprland/`: Hyprland 0.56 Lua bind module and isolated trial config; neither is loaded automatically.
 - `smoke/Smoke.qml`: one ordinary window for a later KDE Quickshell startup check.
+- `preview/`: isolated interactive KDE window with synthetic apps and windows.
 - `docs/`: locked requirements, architecture, status, and trial gates.
 - `scripts/`, `tests/`: static invariants and state-machine tests.
 
@@ -28,6 +29,6 @@ node --test tests/interaction.test.mjs
 git diff --check
 ```
 
-Node can be supplied from the Codex bundled runtime if it is absent from `PATH`. See [Stage B1 status](docs/STAGE_B1_STATUS.md) for the current PASS/FAIL/NOT TESTED matrix and [trial gates](docs/STAGE_B1_GATES.md) before any isolated test. Do not load the Lua bind module into the active KDE session.
+Node can be supplied from the Codex bundled runtime if it is absent from `PATH`. See [interactive preview instructions](docs/INTERACTIVE_PREVIEW.md), [Stage B1 status](docs/STAGE_B1_STATUS.md), and [trial gates](docs/STAGE_B1_GATES.md) before any isolated test. Do not load the Lua bind module into the active KDE session.
 
 No third-party source or assets are vendored. A license for original Synn code has not yet been selected.
