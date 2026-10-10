@@ -1,13 +1,46 @@
-# Stage B1 isolated runtime trial gates
+# Stage B1 runtime trial plan — approval required before live testing
 
-Stage B1 source is not installed. Keep the active KDE session intact. A later trial needs separate approval and a disposable Hyprland session or equivalent isolation that cannot replace the current desktop or affect user processes.
+No command in this section has been run for this preparation. KDE stays active; no Synn autostart, lock, UWSM launch, service change, or write to `~/.config/hypr` is involved. Use the exact repository files, not a copied user config.
 
-1. Record the target Quickshell 0.3.2, Qt, Hyprland 0.56.2 and UWSM 0.27.0 versions and existing shortcuts. Run QML syntax/import validation with those exact packages. Resolve every QML error before interaction testing.
-2. Review `config/hyprland/synn-b1-review.conf` against actual bindings. The Super-only candidate is intentionally commented out: establish compositor-side press/release semantics and suppression for **all** Super combinations before enabling it. Verify tap, hold, repeat, Super+I, Super+D, Super+Tab, unrelated Super combinations, fullscreen apps and keyboard grabs. Keep the topbar fallback usable.
-3. Test launcher desktop-entry discovery, typing focus, arrows, Enter, Esc, closing focus restoration, already-running app matching, launch failures, terminal entries and multiple workspaces. Confirm no stray toggle or focus theft.
-4. Test Overview with zero, one and many windows across monitors/workspaces; mouse and keyboard selection; rapid open/close reversal; stale/closed windows; missing capture protocol; preview permission or capture failure; fullscreen and focus-grab failure. Confirm no stale image is displayed.
-5. Test both mode directions with terminal sessions, unsaved editor work and Docker/database workloads running. Verify no termination, restart or workspace jump. Define and separately review a physical layout restore policy before enabling window movement. Snapshot validation alone does not pass this gate.
-6. Check one shell/root/bar, dockless and taskbarless behavior, bottom-edge inactivity, reduced-motion and low-power paths, frame timing on 1920×1080 at 144 Hz, and cleanup after interrupted animations. Do not claim a measured frame rate until benchmarked.
-7. Keep a rollback path to the existing desktop and shell. Do not autostart Synn, source the keybind fragment, change Hyprland/UWSM/KDE settings, install services or deploy a lockscreen as part of this source review.
+## Gate 1: ordinary Quickshell window under KDE
 
-An `Alt+Tab` binding and minimized-window restore policy are not installed by this repository. They require validation in the isolated compositor trial, with no forced workspace switch.
+After approval, from a KDE terminal, run:
+
+```sh
+cd /home/sinn/Projects/synn-shell
+./scripts/run_smoke_kde.sh
+```
+
+The script rejects a non-KDE or Hyprland environment and runs `qs -p` on `smoke/Smoke.qml`. That QML creates exactly one `FloatingWindow`; it has no panel, global shortcut, Hyprland adapter, session lock, or process launch. Expected result: a small “Synn smoke test” window. Risk: a Quickshell/Qt crash or ordinary focus change in KDE. Rollback: `Ctrl+C` in the same terminal; if the window persists, terminate only that `qs -p .../smoke/Smoke.qml` process after confirming its PID. Do not run `shell/Shell.qml` under KDE.
+
+## Gate 2: determine whether nesting is safe
+
+Before a nested launch, record the actual `Hyprland --version`, `qs --version`, `pacman -Q aquamarine`, current `WAYLAND_DISPLAY`, GPU/driver, and whether the installed Aquamarine build can be constrained to its Wayland backend without a DRM fallback. Inspect `Hyprland --help` and the installed Aquamarine/Hyprland documentation or source for that exact build. **If backend confinement cannot be proven, do not launch nested Hyprland under KDE.**
+
+Aquamarine includes a Wayland-in-window backend, so nesting is plausible. It is not guaranteed on this machine: an [upstream Aquamarine 0.14.0 report](https://github.com/hyprwm/aquamarine/issues/348) describes a nested Hyprland 0.56.1 output that stops presenting after its first frame. The installed Aquamarine version and KDE-host behavior are unknown in this preparation environment. A fallback to DRM could also threaten the active display; a nested test must never reach that backend.
+
+`config/hyprland/trial/hyprland.lua` is an isolated `--config` candidate. It requests only `WAYLAND-1` at 1280×800 and disables unmatched outputs, suppresses systemd/DBus environment export, starts no clients, and has `Super+Shift+Escape` mapped to `hl.dsp.exit()`. The fallback monitor rule does not replace backend confinement. The exit dispatcher is appropriate only for a standalone nested trial, never for a UWSM session. This config intentionally does not load `synn-b1-review.lua`.
+
+**Candidate command, NOT APPROVED TO RUN YET** (only after confirming backend confinement and receiving approval):
+
+```sh
+env -u HYPRLAND_INSTANCE_SIGNATURE HYPRLAND_NO_SD_VARS=1 \
+  Hyprland --config /home/sinn/Projects/synn-shell/config/hyprland/trial/hyprland.lua
+```
+
+Risk: the nested window may be black, frozen, or fail to start; without a proven backend constraint, it may attempt DRM. Rollback, in order: focus the nested window and press `Super+Shift+Escape`; use `Ctrl+C` in the launching terminal; if necessary, send `TERM` only to the exact recorded nested Hyprland PID. Never use broad process matching, `uwsm stop`, logout, or reboot as a rollback for this trial.
+
+## Gate 3: Synn interaction matrix in an isolated session
+
+Only after Gates 1–2 pass, run one Synn shell instance on the nested display and separately review loading `synn-b1-review.lua`. Keep the Super-only bind disabled until every collision case passes. Record PASS/FAIL per item:
+
+| Area | Cases to prove |
+|---|---|
+| Launcher | Desktop-entry search and ranking, typing focus, arrows, Enter focus/launch, Esc restore, terminal-entry rejection, launch failure, held/repeated Super, Super+I/D/Tab, unrelated Super combinations, fullscreen, focus-grab failure. |
+| Overview | Zero/one/many windows, mouse and keyboard choice, multi-workspace/monitor labels, stale-window removal, missing screencopy fallback, rapid open/close reversal, preview freshness, return animation. |
+| Focus | Exact-address dispatch acknowledgment, already-running app match, cancellation restore, minimized/fullscreen windows, no unwanted workspace switch. |
+| Modes | Sanctuary↔Workshop presentation, snapshot failure handling, no automatic window move or app launch, no termination or restart, protected/pinned app treatment. |
+| Preservation | Keep existing terminals, unsaved editor work, Docker, containers and databases running throughout; verify no process or service change. |
+| Visual/performance | One top bar, no dock/taskbar/edge reveal, reduced-motion and low-power paths, animation interruption cleanup, measured 1920×1080/144 Hz frame timing. |
+
+Alt+Tab and physical layout restoration are not implemented by this repository. Their policies need separate compositor testing and review before enabling them.

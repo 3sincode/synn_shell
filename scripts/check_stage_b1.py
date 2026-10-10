@@ -39,7 +39,35 @@ check('text: "Synn"' in bar, "visible brand must be Synn")
 check("DesktopEntries.applications.values" in all_qml, "desktop entry search missing")
 check("ScreencopyView" in all_qml and "Preview unavailable" in all_qml,
       "overview must have preview and explicit fallback")
-check((root / "config/hyprland/synn-b1-review.conf").exists(), "review-only keybind fragment missing")
+lua = root / "config/hyprland/synn-b1-review.lua"
+check(lua.exists(), "Hyprland Lua review module missing")
+check(not (root / "config/hyprland/synn-b1-review.conf").exists(), "obsolete Hyprland config present")
+if lua.exists():
+    lua_source = lua.read_text()
+    check('hl.bind("SUPER + I", hl.dsp.global("synn-shell:sanctuary")' in lua_source,
+          "Sanctuary Lua bind missing")
+    check('hl.bind("SUPER + D", hl.dsp.global("synn-shell:workshop")' in lua_source,
+          "Workshop Lua bind missing")
+    check('hl.bind("SUPER + Tab", hl.dsp.global("synn-shell:overview")' in lua_source,
+          "Overview Lua bind missing")
+    check(not re.search(r'^\s*hl\.bind\("Super_L"', lua_source, re.M),
+          "Super-only bind must remain disabled")
+
+smoke = root / "smoke/Smoke.qml"
+check(smoke.exists(), "isolated smoke QML missing")
+if smoke.exists():
+    smoke_source = smoke.read_text()
+    check("FloatingWindow" in smoke_source and not re.search(
+        r"\b(PanelWindow|GlobalShortcut|WlSessionLock|HyprlandAdapter)\b", smoke_source),
+        "smoke QML must use only an ordinary window")
+trial = root / "config/hyprland/trial/hyprland.lua"
+check(trial.exists(), "isolated Hyprland trial config missing")
+if trial.exists():
+    trial_source = trial.read_text()
+    check("synn-b1-review" not in trial_source and "hl.dsp.exit()" in trial_source,
+          "trial config must not load Synn shortcuts and needs a local exit")
+check("hl.dsp.focus({ window = 'address:" in sources.get("shell/adapters/HyprlandAdapter.qml", ""),
+      "Hyprland 0.56 Lua focus dispatch missing")
 
 for path, content in sources.items():
     for pattern in (r"\bArena\b", r"\bGaming\b", r"Super\+G", r"\bexecDetached\b",

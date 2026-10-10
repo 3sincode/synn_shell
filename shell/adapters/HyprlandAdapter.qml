@@ -45,9 +45,9 @@ Scope {
     }
 
     function focusWindow(address) {
-        if (!available || !Rules.safeWindowId(address)) return false;
+        if (!available || !Hyprland.usingLua || !Rules.safeWindowId(address)) return false;
         if (!windowList().some(function (item) { return item.address === address; })) return false;
-        Hyprland.dispatch("focuswindow address:" + address);
+        Hyprland.dispatch("hl.dsp.focus({ window = 'address:" + address + "' })");
         return true; // Dispatch acceptance is not confirmation; runtime must verify focus.
     }
 

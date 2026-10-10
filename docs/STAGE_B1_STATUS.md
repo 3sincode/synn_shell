@@ -1,23 +1,25 @@
-# Stage B1 implementation status
+# Stage B1 status and runtime preparation
 
-Branch: `feat/stage-b1-desktop-interactions`. Baseline: Stage B0 commit `6a73eee62331192a86a2704c53d751f05b424034`.
+Branch: `feat/stage-b1-desktop-interactions`; draft PR #1. Source-only preparation; no live compositor test or deployment.
 
-## Implemented in source
+## Results as of 2026-10-10
 
-- One root, one top bar, two transient panels; no dock, taskbar or edge trigger.
-- Searchable desktop-entry launcher with arrow selection, Enter action, Esc dismissal, a guarded terminal-entry path and focus retry.
-- Explicit Super-tap state rules that suppress repeats, long holds and observed combinations; adapter-owned global shortcut names and a review-only compositor fragment.
-- Reversible launcher/Overview `Closed → Opening → Open → Closing → Closed` states, shared motion timing, reduced-motion and low-power flags.
-- Overview inventory, mouse/keyboard selection, monitor/workspace labels, optional still screencopy and visible fallback.
-- Sanctuary and Workshop presentation profiles with no automatic application termination. In-memory window snapshot validation and a restore contract that reports its current gating failure.
-- Five-category application registry with protected workload kinds.
+| Check | Result | Evidence and limit |
+|---|---|---|
+| Stage B1 architecture/static invariants | PASS | `python3 scripts/check_stage_b1.py` on this revision; checks one shell/bar, two modes, protected registry, Lua bind file and inert smoke/trial files. |
+| Node interaction state machines | PASS | `node --test tests/interaction.test.mjs`: 5/5 on this revision. |
+| QML lint for prior 12 Stage B1 QML files | PASS, user-reported | User supplied 12/12 result before this preparation. It was not reproduced on this host, and the new smoke QML has not been linted. |
+| Quickshell/Hyprland documented API forms | PASS, source review | Quickshell 0.3.2 `GlobalShortcut`, `Hyprland.usingLua`/`dispatch`, `FloatingWindow`; Hyprland 0.56 Lua `hl.bind`, `hl.dsp.global`, `hl.dsp.focus`, `hl.monitor`, `hl.dsp.exit`. This is documentation compatibility, not runtime proof. |
+| Installed tool discovery on this authoring host | FAIL | `Hyprland`, `qs`, `qmllint`, `pacman`, `lua` and `luac` were not in `PATH`; `/usr/bin/Hyprland`, `/usr/bin/qs`, `/usr/bin/qmllint`, `/usr/bin/hyprctl` were absent. The user's target installation cannot be inspected from this host. |
+| Lua syntax with `luac` or Hyprland parser | NOT TESTED | No Lua/Hyprland executable available here. Static patterns do not prove parser acceptance. |
+| KDE Quickshell smoke window | NOT TESTED | Prepared but requires later live-test approval. |
+| Nested Hyprland/Aquamarine on KDE | NOT TESTED | Installed Aquamarine version/backend confinement not verifiable here; upstream has a nested-output stall report for 0.14.0. |
+| Super-only modifier collision matrix | NOT TESTED | Bind remains commented out. Shell arbiter covers only events delivered to it. |
+| Launcher, Overview, focus, mode and window preservation runtime | NOT TESTED | Requires isolated compositor test. |
+| `git diff --check` | PASS | Checked for this preparation commit. |
 
-## Incomplete / NOT RUNTIME TESTED
+## Source implementation and limits
 
-- QML syntax/import loading, keyboard grabs, global-shortcut press/release delivery and Super-only arbitration across arbitrary compositor shortcuts. The Super-only line remains commented out in the review fragment.
-- Successful desktop-entry launch, application-class matching, focus dispatch acknowledgment and focus restoration, including fullscreen/minimized cases.
-- Screencopy protocol availability, preview validity and visual frame smoothness. Still captures are attempted; the fallback remains visible when no content exists.
-- Actual compositor window placement and snapshot restoration. Mode transitions change only Synn presentation and never move user windows. Alt+Tab/minimized restoration remain compositor trial items.
-- Stage C media, EQ, Wi-Fi, Bluetooth, notifications and Stage D secure lock are still placeholders or future work.
+The existing launcher, Overview, Sanctuary/Workshop presentation and protected registry remain. This preparation replaces the obsolete `.conf` candidate with a Hyprland 0.56 Lua module, updates focus requests to the Lua dispatcher form, adds a non-panel Quickshell smoke window, and stages a minimal nested config without loading Synn binds. No application is automatically closed, and mode changes do not move windows. Successful focus, preview freshness, keyboard grabbing, physical layout restore, Alt+Tab and measured motion remain unverified.
 
-The documented Quickshell 0.3.2 API shape was checked against official references in `ARCHITECTURE.md`; execution compatibility on the target system has not been established. Static and Node state-machine checks are recorded in the Stage B1 completion report. No desktop deployment or system configuration change is part of this branch.
+See `STAGE_B1_GATES.md` for proposed commands, risks, rollback and the interaction checklist. No Stage C or lockscreen work is included.
