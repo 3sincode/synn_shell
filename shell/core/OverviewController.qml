@@ -25,7 +25,8 @@ QtObject {
     }
     function refresh(adapter) {
         if (!visible) return;
-        const selectedAddress = windows[selectedIndex]?.address;
+        const selectedWindow = windows[selectedIndex];
+        const selectedAddress = selectedWindow ? selectedWindow.address : undefined;
         windows = adapter ? adapter.windowList() : [];
         selectedIndex = windows.findIndex(function (w) { return w.address === selectedAddress; });
         if (selectedIndex < 0) selectedIndex = windows.length ? 0 : -1;

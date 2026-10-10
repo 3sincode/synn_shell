@@ -30,7 +30,8 @@ QtObject {
     }
 
     function categoryFor(applicationId) {
-        return entries[applicationId]?.category ?? "External";
+        const item = entries[applicationId];
+        return item && item.category != null ? item.category : "External";
     }
 
     function isProtected(applicationId) {
